@@ -7,7 +7,7 @@
 #include <string>
 
 #include "system.h"
-#include "correlation_function.h"
+#include "time_correlation.h"
 
 using namespace std;
 

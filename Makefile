@@ -9,7 +9,7 @@ LFLAGS = -Wall -O3 -DNDEBUG
 $(TARGET): $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) -o $(TARGET)
 
-main.o: main.cpp system.h correlation_function.h
+main.o: main.cpp system.h time_correlation.h
 	$(CC) $(CFLAGS) main.cpp
 
 
