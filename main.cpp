@@ -7,6 +7,7 @@
 #include <string>
 
 #include "system.h"
+#include "correlation_function.h"
 
 using namespace std;
 
