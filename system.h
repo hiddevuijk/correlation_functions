@@ -38,7 +38,6 @@ class System {
 
 
 	// particle velocity and position
-	std::vector<Vec3> positions_;
   double v_, x_;
 
   // current time	
@@ -67,7 +66,7 @@ void System::MakeTimeStep(double dt)
 {
   double sqrt_2_dt = sqrt(2 * dt);
   x_ += dt * v_;
-  v_ +=  - dt * v_ + sqrt_2_dt * random_normal_distribution;
+  v_ +=  - dt * v_ + sqrt_2_dt * random_normal_distribution_();
   time_ += dt;
 }
 
