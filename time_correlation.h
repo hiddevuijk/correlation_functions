@@ -20,9 +20,9 @@ class TimeCorrelation {
 
   std::vector<T> GetTimeCorrelationFunction() const;
 
- private:  
+ protected:  
 
-  void SampleCABFromList();
+  virtual void SampleCABFromList() {};
 
   unsigned int number_of_time_steps_;
   int number_of_samples_;
@@ -30,11 +30,21 @@ class TimeCorrelation {
   std::vector<T> A_list_;
   std::vector<T> B_list_;
 
-  unsigned int list_first_index_;
   unsigned int list_last_index_;
 
   std::vector<T> c_AB_;
   
+};
+
+template <class T>
+class TimeCorrelation3 : public TimeCorrelation<T>
+{
+ public:
+  TimeCorrelation3(unsigned int number_of_time_steps)
+    : TimeCorrelation<T>(number_of_time_steps) {};
+
+ private:
+    void SampleCABFromList() override;
 };
 
 
@@ -44,7 +54,6 @@ TimeCorrelation<T>::TimeCorrelation(unsigned int number_of_time_steps)
     number_of_samples_(-1 * number_of_time_steps),
     A_list_(number_of_time_steps),
     B_list_(number_of_time_steps),
-    list_first_index_(0),
     list_last_index_(-1),
     c_AB_(number_of_time_steps_)
 {} 
@@ -60,29 +69,10 @@ void TimeCorrelation<T>::Sample(T A, T B)
     ++number_of_samples_;
   } else {
     list_last_index_ = (list_last_index_ + 1) % number_of_time_steps_;
-    list_first_index_ = (list_first_index_ + 1) % number_of_time_steps_; 
     A_list_[list_last_index_] = A; 
     B_list_[list_last_index_] = B; 
     SampleCABFromList();
   } 
-}
-
-template <class T>
-void TimeCorrelation<T>::SampleCABFromList()
-{
-  ++number_of_samples_;
-
-  int delta_ti;
-  for (unsigned int i = 0; i < number_of_time_steps_; ++i) {
-    delta_ti = list_last_index_ - i;
-    if ( delta_ti < 0) {
-      delta_ti += number_of_time_steps_;
-    }
-    c_AB_[i] += (A_list_[list_last_index_] - A_list_[delta_ti]) *
-                (B_list_[list_last_index_] - B_list_[delta_ti]);
-
-  }
-  
 }
 
 template <class T>
@@ -94,6 +84,32 @@ std::vector<T> TimeCorrelation<T>::GetTimeCorrelationFunction() const
     c_AB_temp[i] /= number_of_samples_;
   }
   return c_AB_temp;
+}
+
+template <class T>
+void TimeCorrelation3<T>::SampleCABFromList()
+{
+  ++TimeCorrelation<T>::number_of_samples_;
+  int delta_ti;
+  unsigned int list_last_index = TimeCorrelation<T>::list_last_index_; 
+  for (unsigned int i = 0;
+       i < TimeCorrelation<T>::number_of_time_steps_;
+       ++i)
+  {
+    delta_ti = TimeCorrelation<T>::list_last_index_ - i;
+
+    if ( delta_ti < 0) {
+      delta_ti += TimeCorrelation<T>::number_of_time_steps_;
+    }
+
+    TimeCorrelation<T>::c_AB_[i] +=
+       (TimeCorrelation<T>::A_list_[list_last_index] -
+          TimeCorrelation<T>::A_list_[delta_ti]) *
+       (TimeCorrelation<T>::B_list_[list_last_index] -
+          TimeCorrelation<T>::B_list_[delta_ti]);
+
+  }
+  
 }
 
 
