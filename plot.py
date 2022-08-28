@@ -3,34 +3,51 @@ import matplotlib.pyplot as plt
 from sys import exit
 
 
+cvv = np.loadtxt("cvv.dat")
+cvr = np.loadtxt("cvr.dat")
 crr = np.loadtxt("crr.dat")
-t = np.linspace(0, (1e-2)*crr.shape[0], crr.shape[0])
+
+dt = 1e-1
+t = np.linspace(0, dt * crr.shape[0], crr.shape[0])
 
 def msd(t):
-  return 2 * t - 3 + 4 * np.exp(-t) - np.exp(-2 * t)
-
-def msd2(t):
   v2 = 1
   A = 2 * t
   A += v2 * (1 - np.exp(-t))**2
   A -= 3 + np.exp(-2*t) - 4 * np.exp(-t)
   return A
 
-y = msd2(t)
-plt.plot(t,y)
+y = msd(t)
+#plt.plot(t,y)
 
-plt.scatter(t, crr, color="black")
+#plt.scatter(t, crr, color="black")
+plt.plot(t, cvv, color="black", label="cvv")
+plt.plot(t, cvr, color="red", label="cvr")
+plt.plot(t, crr, color="blue", label="crr")
 
 
-tb = np.linspace(0.005, 0.5)
-y = 1 * tb**2
-#plt.plot(tb, y, ls=":")
+Drr1 = crr[-1] / ( 2 * t[-1])
+n = 100
+Drr2 = (crr[-1] - crr[-(1+n)]) / ( 2 *dt * n)
+Dvr1 = cvr[-1]
+N = cvr.shape[0]
+print(t[N-n])
+Dvr2 = np.sum(cvr[N-n:])/cvr[N-n:].shape[0]
+Dvv = np.sum(cvv) * dt
 
-td = np.linspace(2, 20)
-y = 10 * td
-#plt.plot(td, y, ls=":")
+print("Dvv=",Dvv)
+print("Dvr1=",Dvr1)
+print("Dvr2=",Dvr2)
+print("Drr1=",Drr1)
+print("Drr2=",Drr2)
 
-#plt.xlim([t[0], t[-1]*2])
+plt.axhline(0)
+plt.axhline(1)
+
+
+plt.xlim([0, t[-1]*1.1])
 #plt.xscale('log')
 #plt.yscale('log')
+
+plt.legend()
 plt.show()

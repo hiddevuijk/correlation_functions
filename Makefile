@@ -1,5 +1,5 @@
 TARGET = test.exe
-OBJS = main.o
+OBJS = mainBD.o
 CC = g++
 #CFLAGS = -c -Wall -g -std=c++11
 #LFLAGS = -Wall -g
@@ -9,8 +9,8 @@ LFLAGS = -Wall -O3 -DNDEBUG
 $(TARGET): $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) -o $(TARGET)
 
-main.o: main.cpp system.h time_correlation.h
-	$(CC) $(CFLAGS) main.cpp
+main.o: mainBD.cpp systemBD.h time_correlation.h
+	$(CC) $(CFLAGS) mainBD.cpp
 
 
 .PHONY: clean
