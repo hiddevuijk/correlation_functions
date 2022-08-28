@@ -2,11 +2,34 @@
 #define GUARD_Time_CORRELATION_H
 
 /*
-  Sample the time correlation function 
-    C(t) = < A(t) B(t) >
+  Sample three different kinds of correlation functions:
+  TimeCorrelation1: C1_ab(tau) = < A(t) B(t+tau) >
+  TimeCorrelation2: C2_ab(tau) = < A(t) [B(t+tau) - B(t)] >
+  TimeCorrelation3: C3_ab(tau) = < [A(t+tau - A(t)] B(t+tau) - B(t)] >
 
-  A and B must be of the same class, of which * must be defined,
-  and A * B is of the same type as A and B
+  Where A and B can be of any type (they must be the same type),
+  that have * and + defined, and A * B and A + B
+  must be of the same type as A and B.
+
+  The three classes are derived from the base class "TimeCorrelation"
+
+  The constructor takes a single unsigned int corresponding to the number 
+  of time differences (number_of_time_steps_),
+  that is, the number of elements in the correlation function.
+
+  A sample can be taken by the method Sample(T A, T B).
+  It is assumed that samples are taken on equally spaced time points.
+
+  If the number of samples is less than number_of_time_steps_, the
+  correlation function is empty.
+
+  Example:
+  Initialize time correlation of two objects of type T:
+    TimeCorrelation1<T> c(number_of_time_steps);
+  Take a sample:
+    c.Sample(a,b); 
+  where a and b are of template type T
+   
 */
 
 
@@ -31,15 +54,55 @@ class TimeCorrelation {
   unsigned int number_of_time_steps_;
   int number_of_samples_;
 
+
+  // A_list_ constains
+  // [A(t+n+1), ... ,A(t+tau-1),A(t+tau),A(t),A(t+1),...,A(t+n)] 
+  // the integer "list_last_index_" is the location of the last added A:
+  // A(t+tau) = A_list_[list_last_index_]
   std::vector<T> A_list_;
   std::vector<T> B_list_;
 
   unsigned int list_last_index_;
 
+  // vector with samlples of  the correlation function
   std::vector<T> c_AB_;
   
 };
 
+
+/*
+ CAB(tau) = < A(t) B(t+tau)>
+*/
+template <class T>
+class TimeCorrelation1 : public TimeCorrelation<T>
+{
+ public:
+  TimeCorrelation1(unsigned int number_of_time_steps)
+    : TimeCorrelation<T>(number_of_time_steps) {};
+
+ private:
+    void SampleCABFromList() override;
+};
+
+/*
+ CAB(tau) = < A(t) [B(t+tau) - B(t)]>
+*/
+template <class T>
+class TimeCorrelation2 : public TimeCorrelation<T>
+{
+ public:
+  TimeCorrelation2(unsigned int number_of_time_steps)
+    : TimeCorrelation<T>(number_of_time_steps) {};
+
+ private:
+    void SampleCABFromList() override;
+};
+
+
+
+/*
+ CAB(tau) = < [A(t+tau) - A(t)] [B(t+tau) - B(t)]>
+*/
 template <class T>
 class TimeCorrelation3 : public TimeCorrelation<T>
 {
@@ -51,7 +114,9 @@ class TimeCorrelation3 : public TimeCorrelation<T>
     void SampleCABFromList() override;
 };
 
-
+////////////////////////////////////////////////////////
+// Member functions of the Base class TimeCorrelation //
+////////////////////////////////////////////////////////
 template <class T>
 TimeCorrelation<T>::TimeCorrelation(unsigned int number_of_time_steps)
   : number_of_time_steps_(number_of_time_steps),
@@ -94,6 +159,55 @@ std::vector<T> TimeCorrelation<T>::GetTimeCorrelationFunction() const
   return c_AB_temp;
 }
 
+/////////////////////////////////////////////
+// Member functions of the derived classes //
+/////////////////////////////////////////////
+template <class T>
+void TimeCorrelation1<T>::SampleCABFromList()
+{
+  ++TimeCorrelation<T>::number_of_samples_;
+
+  int delta_ti; // index of time t: A_list_[delta_ti] = A(t)
+  unsigned int list_last_index = TimeCorrelation<T>::list_last_index_; 
+  for (unsigned int i = 0;
+       i < TimeCorrelation<T>::number_of_time_steps_;
+       ++i)
+  {
+    delta_ti = TimeCorrelation<T>::list_last_index_ - i;
+    if ( delta_ti < 0) {
+      delta_ti += TimeCorrelation<T>::number_of_time_steps_;
+    }
+    // add A(t+tau-delta_ti) * B(t+tau)
+    TimeCorrelation<T>::c_AB_[i] +=
+          TimeCorrelation<T>::A_list_[delta_ti] *
+          TimeCorrelation<T>::B_list_[list_last_index];
+  }
+  
+}
+
+template <class T>
+void TimeCorrelation2<T>::SampleCABFromList()
+{
+  ++TimeCorrelation<T>::number_of_samples_;
+  int delta_ti; // index of time t: A_list_[delta_ti] = A(t)
+  unsigned int list_last_index = TimeCorrelation<T>::list_last_index_; 
+  for (unsigned int i = 0;
+       i < TimeCorrelation<T>::number_of_time_steps_;
+       ++i)
+  {
+    delta_ti = TimeCorrelation<T>::list_last_index_ - i;
+    if ( delta_ti < 0) {
+      delta_ti += TimeCorrelation<T>::number_of_time_steps_;
+    }
+
+    // add A(t+tau-delta_ti) * [ B(t+tau) - B(t+tau-delta_ti)]
+    TimeCorrelation<T>::c_AB_[i] +=
+          TimeCorrelation<T>::A_list_[delta_ti] *
+          (TimeCorrelation<T>::B_list_[list_last_index] -
+           TimeCorrelation<T>::B_list_[delta_ti]);
+  }
+  
+}
 template <class T>
 void TimeCorrelation3<T>::SampleCABFromList()
 {
@@ -105,11 +219,11 @@ void TimeCorrelation3<T>::SampleCABFromList()
        ++i)
   {
     delta_ti = TimeCorrelation<T>::list_last_index_ - i;
-
     if ( delta_ti < 0) {
       delta_ti += TimeCorrelation<T>::number_of_time_steps_;
     }
 
+    //add [A(t+tau) - A(t+tau-delta_ti)] * [B(t+tau) - B(t+tau-delta_ti)]
     TimeCorrelation<T>::c_AB_[i] +=
        (TimeCorrelation<T>::A_list_[list_last_index] -
           TimeCorrelation<T>::A_list_[delta_ti]) *
@@ -117,7 +231,6 @@ void TimeCorrelation3<T>::SampleCABFromList()
           TimeCorrelation<T>::B_list_[delta_ti]);
 
   }
-  
 }
 
 
