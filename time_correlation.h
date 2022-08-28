@@ -17,6 +17,10 @@ class TimeCorrelation {
 
   void Sample(T A, T B);
 
+  // at least one sample has been taken.
+  // if it returns false, GetTimeCorrelationFunction returns
+  // a vector with 0s.
+  bool InitStageDone() const { return number_of_samples_ > 0;}
 
   std::vector<T> GetTimeCorrelationFunction() const;
 
@@ -80,9 +84,13 @@ std::vector<T> TimeCorrelation<T>::GetTimeCorrelationFunction() const
 {
 
   std::vector<T> c_AB_temp = c_AB_;
-  for (unsigned int i = 0; i < number_of_time_steps_; ++i) {
-    c_AB_temp[i] /= number_of_samples_;
+
+  if (number_of_samples_ > 0) {
+    for (unsigned int i = 0; i < number_of_time_steps_; ++i) {
+      c_AB_temp[i] /= number_of_samples_;
+    }
   }
+
   return c_AB_temp;
 }
 
