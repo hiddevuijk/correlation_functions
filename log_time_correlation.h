@@ -1,0 +1,79 @@
+#ifndef GUARD_LOG_TIME_CORRELATION_H
+#define GUARD_LOG_TIME_CORRELATION_H
+
+#include "time_correlation.h"
+#include <cmath>
+
+template <class T>
+class LogTimeCorrelation
+{
+ public:
+  LogTimeCorrelation(unsigned int number_of_decades);
+
+  void Sample(T A, T B);
+
+  std::vector<T> GetCorrelationFunction() const;
+  std::vector<double> GetTimeList() const;
+ //private:
+    unsigned int number_of_decades_;
+
+    std::vector<TimeCorrelation3<T> > c_AB_list_;
+
+    unsigned int number_of_samples_;
+};
+
+template <class T>
+LogTimeCorrelation<T>::LogTimeCorrelation(unsigned int number_of_decades)
+  : number_of_decades_(number_of_decades),
+    c_AB_list_(number_of_decades, TimeCorrelation3<T>(10)),
+    number_of_samples_(0)
+{}
+
+
+template <class T>
+void LogTimeCorrelation<T>::Sample(T A, T B)
+{
+
+  for (unsigned int dec = 0; dec < number_of_decades_; ++dec) {
+
+    unsigned int D = std::pow(10, dec);
+    if (number_of_samples_ % D == 0) {
+      c_AB_list_[dec].Sample(A, B);
+    }
+  }
+  number_of_samples_ += 1;
+}
+
+template <class T>
+std::vector<T> LogTimeCorrelation<T>::GetCorrelationFunction() const
+{
+   std::vector<T> c_AB_;
+   for (unsigned int dec = 0; dec < number_of_decades_; ++dec) {
+     std::vector<T> c_AB_decade =
+           c_AB_list_[dec].GetTimeCorrelationFunction();
+     for(unsigned int i = 0; i < 10; ++i) {
+       if ( (i == 0 and dec == 0) or i != 0) {
+         c_AB_.push_back(c_AB_decade[i]);
+       } 
+     }
+   }
+  return c_AB_;
+}
+
+template <class T>
+std::vector<double> LogTimeCorrelation<T>::GetTimeList() const
+{
+
+   std::vector<double> time_list;
+   time_list.push_back(0.0);
+
+   for (unsigned int dec = 0; dec < number_of_decades_; ++dec) {
+     for(unsigned int i = 1; i < 10; ++i) {
+       time_list.push_back( i * pow(10.0,dec) );
+     } 
+   }
+
+   return time_list;
+}
+
+#endif

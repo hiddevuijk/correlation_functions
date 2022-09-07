@@ -1,6 +1,7 @@
 
 
 #include "time_correlation.h"
+#include "log_time_correlation.h"
 #include "system.h"
 
 #include <iostream>
@@ -26,33 +27,37 @@ void save_vector(const vector<T>& vec, string name)
 
 int main()
 {
-  double dt = 1e-1;
-  double t_sample = 1e-2;
-  double t_total = 2e6;
+  double dt = 1e-3;
+  double t_sample = dt;
+  double t_total = 5e4;
 
-  unsigned int n_time_steps = 1000;
+  //unsigned int n_time_steps = 1000;
 
   long unsigned int seed = 213456789;
 
 
   System system(seed, dt);
 
-  TimeCorrelation1<double> cvv(n_time_steps); 
-  TimeCorrelation2<double> cvr(n_time_steps); 
-  TimeCorrelation3<double> crr(n_time_steps); 
+  //TimeCorrelation1<double> cvv(n_time_steps); 
+  //TimeCorrelation2<double> cvr(n_time_steps); 
+  //TimeCorrelation3<double> crr(n_time_steps); 
 
-  system.Integrate(100);
+  LogTimeCorrelation<double> crr(5);
+
+  system.Integrate(1.0);
   while (system.GetTime() < t_total) {
     system.Integrate(t_sample);
-    cvv.Sample(system.GetVelocity(), system.GetVelocity());
-    cvr.Sample(system.GetVelocity(), system.GetPosition());
-    crr.Sample(system.GetPosition(), system.GetPosition());
+    crr.Sample(system.GetPosition(), system.GetPosition()); 
+    //cvv.Sample(system.GetVelocity(), system.GetVelocity());
+    //cvr.Sample(system.GetVelocity(), system.GetPosition());
+    //crr.Sample(system.GetPosition(), system.GetPosition());
     cout << t_total << "\t" << system.GetTime() << endl;
   } 
-
-  save_vector(cvv.GetTimeCorrelationFunction(), "cvv.dat");
-  save_vector(cvr.GetTimeCorrelationFunction(), "cvr.dat");
-  save_vector(crr.GetTimeCorrelationFunction(), "crr.dat");
+  save_vector(crr.GetCorrelationFunction(), "crr.dat");
+  save_vector(crr.GetTimeList(), "t.dat");
+  //save_vector(cvv.GetTimeCorrelationFunction(), "cvv.dat");
+  //save_vector(cvr.GetTimeCorrelationFunction(), "cvr.dat");
+  //save_vector(crr.GetTimeCorrelationFunction(), "crr.dat");
 
   return 0;
 }
