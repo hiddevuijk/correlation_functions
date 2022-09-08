@@ -8,24 +8,26 @@ template <class T>
 class LogTimeCorrelation
 {
  public:
-  LogTimeCorrelation(unsigned int number_of_decades);
+  LogTimeCorrelation(unsigned int number_of_decades,
+                     T (*function)(T,T,T,T));
 
   void Sample(T A, T B);
 
-  std::vector<T> GetCorrelationFunction() const;
+  std::vector<T> GetTimeCorrelationFunction() const;
   std::vector<double> GetTimeList() const;
  //private:
     unsigned int number_of_decades_;
 
-    std::vector<TimeCorrelation3<T> > c_AB_list_;
+    std::vector<TimeCorrelation<T> > c_AB_list_;
 
     unsigned int number_of_samples_;
 };
 
 template <class T>
-LogTimeCorrelation<T>::LogTimeCorrelation(unsigned int number_of_decades)
+LogTimeCorrelation<T>::LogTimeCorrelation(unsigned int number_of_decades,
+                                          T (*function)(T,T,T,T))
   : number_of_decades_(number_of_decades),
-    c_AB_list_(number_of_decades, TimeCorrelation3<T>(10)),
+    c_AB_list_(number_of_decades, TimeCorrelation<T>(10,function)),
     number_of_samples_(0)
 {}
 
@@ -34,18 +36,18 @@ template <class T>
 void LogTimeCorrelation<T>::Sample(T A, T B)
 {
 
+  unsigned int D = 1;
   for (unsigned int dec = 0; dec < number_of_decades_; ++dec) {
-
-    unsigned int D = std::pow(10, dec);
     if (number_of_samples_ % D == 0) {
       c_AB_list_[dec].Sample(A, B);
     }
+    D *= 10;
   }
   number_of_samples_ += 1;
 }
 
 template <class T>
-std::vector<T> LogTimeCorrelation<T>::GetCorrelationFunction() const
+std::vector<T> LogTimeCorrelation<T>::GetTimeCorrelationFunction() const
 {
    std::vector<T> c_AB_;
    for (unsigned int dec = 0; dec < number_of_decades_; ++dec) {

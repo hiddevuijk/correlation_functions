@@ -25,39 +25,47 @@ void save_vector(const vector<T>& vec, string name)
   vec_out.close();
 }
 
+double f2(double A0, double At, double B0, double Bt)
+{
+  double temp = (At-A0);
+  return temp * temp;
+}
+
+double f4(double A0, double At, double B0, double Bt)
+{
+  double temp = (At-A0);
+  return temp * temp * temp * temp;
+}
 int main()
 {
-  double dt = 1e-3;
+  double dt = 1e-2;
   double t_sample = dt;
-  double t_total = 5e4;
+  double t_total = 1e6;
 
-  //unsigned int n_time_steps = 1000;
+  unsigned int n_time_steps = 4;
 
-  long unsigned int seed = 213456789;
+  long unsigned int seed = 213451789;
 
 
   System system(seed, dt);
 
-  //TimeCorrelation1<double> cvv(n_time_steps); 
-  //TimeCorrelation2<double> cvr(n_time_steps); 
-  //TimeCorrelation3<double> crr(n_time_steps); 
+  //TimeCorrelation<double> crr(n_time_steps, f); 
+  LogTimeCorrelation<double> crr2(n_time_steps, f2); 
+  LogTimeCorrelation<double> crr4(n_time_steps, f4); 
 
-  LogTimeCorrelation<double> crr(5);
 
-  system.Integrate(1.0);
+  system.Integrate(t_sample);
   while (system.GetTime() < t_total) {
     system.Integrate(t_sample);
-    crr.Sample(system.GetPosition(), system.GetPosition()); 
-    //cvv.Sample(system.GetVelocity(), system.GetVelocity());
-    //cvr.Sample(system.GetVelocity(), system.GetPosition());
-    //crr.Sample(system.GetPosition(), system.GetPosition());
+    crr2.Sample(system.GetPosition(), system.GetPosition()); 
+    crr4.Sample(system.GetPosition(), system.GetPosition()); 
     cout << t_total << "\t" << system.GetTime() << endl;
   } 
-  save_vector(crr.GetCorrelationFunction(), "crr.dat");
-  save_vector(crr.GetTimeList(), "t.dat");
-  //save_vector(cvv.GetTimeCorrelationFunction(), "cvv.dat");
-  //save_vector(cvr.GetTimeCorrelationFunction(), "cvr.dat");
-  //save_vector(crr.GetTimeCorrelationFunction(), "crr.dat");
+  save_vector(crr2.GetTimeCorrelationFunction(), "crr2.dat");
+  save_vector(crr2.GetTimeList(), "t2.dat");
+
+  save_vector(crr4.GetTimeCorrelationFunction(), "crr4.dat");
+  save_vector(crr4.GetTimeList(), "t4.dat");
 
   return 0;
 }

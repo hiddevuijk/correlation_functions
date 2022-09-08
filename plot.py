@@ -3,11 +3,15 @@ import matplotlib.pyplot as plt
 from sys import exit
 
 
-dt = 1e-3
+dt = 1e-2
 #cvv = np.loadtxt("cvv.dat")
 #cvr = np.loadtxt("cvr.dat")
-crr = np.loadtxt("crr.dat") 
-t = np.loadtxt("t.dat") * dt
+crr2 = np.loadtxt("crr2.dat")[1:]
+crr4 = np.loadtxt("crr4.dat")[1:]
+c =  crr4 / (3 * crr2**2)
+c -= 1
+t = np.loadtxt("t2.dat")[1:] * dt
+c = np.gradient(crr2,t) / 2.0
 
 #t = np.linspace(0, dt * crr.shape[0], crr.shape[0])
 
@@ -24,7 +28,7 @@ y = msd(t)
 #plt.scatter(t, crr, color="black")
 #plt.plot(t, cvv, color="black", label="cvv")
 #plt.plot(t, cvr, color="red", label="cvr")
-plt.scatter(t, crr, color="blue", label="crr")
+plt.scatter(t, c, color="blue", label="crr")
 
 
 #Drr1 = crr[-1] / ( 2 * t[-1])
