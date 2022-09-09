@@ -12,7 +12,7 @@ c =  crr4 / (3 * crr2**2)
 c -= 1
 t = np.loadtxt("t2.dat")[1:] * dt
 c = np.gradient(crr2,t) / 2.0
-
+c = crr2
 #t = np.linspace(0, dt * crr.shape[0], crr.shape[0])
 
 def msd(t):
@@ -50,9 +50,9 @@ plt.scatter(t, c, color="blue", label="crr")
 #plt.axhline(1)
 
 
-#plt.xlim([0, t[-1]*1.1])
-#plt.xscale('log')
-#plt.yscale('log')
+plt.xlim([dt/2, t[-1]*2.0])
+plt.xscale('log')
+plt.yscale('log')
 
 plt.legend()
 plt.show()

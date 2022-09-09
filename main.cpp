@@ -1,5 +1,4 @@
 
-
 #include "time_correlation.h"
 #include "log_time_correlation.h"
 #include "system.h"
@@ -40,9 +39,10 @@ int main()
 {
   double dt = 1e-2;
   double t_sample = dt;
-  double t_total = 1e6;
+  double t_total = 1e4;
 
-  unsigned int n_time_steps = 4;
+  unsigned int n_time_steps = 20;
+  unsigned int n_decades = 4;
 
   long unsigned int seed = 213451789;
 
@@ -50,8 +50,8 @@ int main()
   System system(seed, dt);
 
   //TimeCorrelation<double> crr(n_time_steps, f); 
-  LogTimeCorrelation<double> crr2(n_time_steps, f2); 
-  LogTimeCorrelation<double> crr4(n_time_steps, f4); 
+  LogTimeCorrelation<double> crr2(n_time_steps, n_decades, f2); 
+  LogTimeCorrelation<double> crr4(n_time_steps, n_decades, f4); 
 
 
   system.Integrate(t_sample);
