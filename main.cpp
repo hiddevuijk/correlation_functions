@@ -24,25 +24,30 @@ void save_vector(const vector<T>& vec, string name)
   vec_out.close();
 }
 
-double f2(double A0, double At, double B0, double Bt)
+double frr(double A0, double At, double B0, double Bt)
 {
   double temp = (At-A0);
   return temp * temp;
 }
 
-double f4(double A0, double At, double B0, double Bt)
+double fvr(double A0, double At, double B0, double Bt)
 {
-  double temp = (At-A0);
-  return temp * temp * temp * temp;
+  return A0 * (B0 - Bt);
 }
+
+double fvv(double A0, double At, double B0, double Bt)
+{
+  return A0 * At;
+}
+
 int main()
 {
-  double dt = 1e-2;
+  double dt = 5e-2;
   double t_sample = dt;
-  double t_total = 1e4;
+  double t_total = 1e6;
 
-  unsigned int n_time_steps = 20;
-  unsigned int n_decades = 4;
+  unsigned int n_time_steps = 5;
+  unsigned int n_decades = 6;
 
   long unsigned int seed = 213451789;
 
@@ -50,22 +55,24 @@ int main()
   System system(seed, dt);
 
   //TimeCorrelation<double> crr(n_time_steps, f); 
-  LogTimeCorrelation<double> crr2(n_time_steps, n_decades, f2); 
-  LogTimeCorrelation<double> crr4(n_time_steps, n_decades, f4); 
+  LogTimeCorrelation<double> crr(n_time_steps, n_decades, frr); 
+  LogTimeCorrelation<double> cvr(n_time_steps, n_decades, fvr); 
+  LogTimeCorrelation<double> cvv(n_time_steps, n_decades, fvv); 
 
 
   system.Integrate(t_sample);
   while (system.GetTime() < t_total) {
     system.Integrate(t_sample);
-    crr2.Sample(system.GetPosition(), system.GetPosition()); 
-    crr4.Sample(system.GetPosition(), system.GetPosition()); 
+    crr.Sample(system.GetPosition(), system.GetPosition()); 
+    cvr.Sample(system.GetVelocity(), system.GetPosition()); 
+    cvv.Sample(system.GetVelocity(), system.GetVelocity()); 
     cout << t_total << "\t" << system.GetTime() << endl;
   } 
-  save_vector(crr2.GetTimeCorrelationFunction(), "crr2.dat");
-  save_vector(crr2.GetTimeList(), "t2.dat");
+  save_vector(crr.GetTimeCorrelationFunction(), "crr.dat");
+  save_vector(crr.GetTimeList(), "t.dat");
 
-  save_vector(crr4.GetTimeCorrelationFunction(), "crr4.dat");
-  save_vector(crr4.GetTimeList(), "t4.dat");
+  save_vector(cvr.GetTimeCorrelationFunction(), "cvr.dat");
+  save_vector(cvv.GetTimeCorrelationFunction(), "cvv.dat");
 
   return 0;
 }

@@ -1,19 +1,15 @@
 import numpy as np
+import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from sys import exit
 
 
-dt = 1e-2
-#cvv = np.loadtxt("cvv.dat")
-#cvr = np.loadtxt("cvr.dat")
-crr2 = np.loadtxt("crr2.dat")[1:]
-crr4 = np.loadtxt("crr4.dat")[1:]
-c =  crr4 / (3 * crr2**2)
-c -= 1
-t = np.loadtxt("t2.dat")[1:] * dt
-c = np.gradient(crr2,t) / 2.0
-c = crr2
-#t = np.linspace(0, dt * crr.shape[0], crr.shape[0])
+dt = 5e-2
+crr = np.loadtxt("crr.dat")
+cvr = np.loadtxt("cvr.dat")
+cvv = np.loadtxt("cvv.dat")
+t = np.loadtxt("t.dat") * dt
+N = t.shape[0]
 
 def msd(t):
   v2 = 1
@@ -23,12 +19,16 @@ def msd(t):
   return A
 
 y = msd(t)
-#plt.plot(t,y)
+plt.plot(t[1:],y[1:]/(2 * t[1:]))
 
-#plt.scatter(t, crr, color="black")
-#plt.plot(t, cvv, color="black", label="cvv")
-#plt.plot(t, cvr, color="red", label="cvr")
-plt.scatter(t, c, color="blue", label="crr")
+plt.scatter(t[1:], crr[1:]/(2 * t[1:]), color="blue", label="crr/(2 t)")
+plt.scatter(t, cvv, color="black", label="cvv")
+plt.scatter(t, cvr, color="red", label="cvr")
+
+
+n = 22 
+Dvv = integrate.simps(cvv[:n], t[:n])
+print(Dvv)
 
 
 #Drr1 = crr[-1] / ( 2 * t[-1])
@@ -52,7 +52,7 @@ plt.scatter(t, c, color="blue", label="crr")
 
 plt.xlim([dt/2, t[-1]*2.0])
 plt.xscale('log')
-plt.yscale('log')
+#plt.yscale('log')
 
 plt.legend()
 plt.show()
